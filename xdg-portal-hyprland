@@ -1,10 +1,20 @@
 #!/bin/sh
-# Starts the desktop portals (screen sharing, file pickers) without systemd.
+# Starts the desktop portals without systemd (screen sharing, screenshots,
+# file pickers, links and notifications for Flatpak apps).
+# Based on https://wiki.gentoo.org/wiki/Hyprland#Flatpak_portals
 sleep 1
 pkill -f xdg-desktop-portal-hyprland
-pkill -f xdg-desktop-portal-wlr
 pkill -f xdg-desktop-portal-gtk
+pkill -f xdg-desktop-portal-gnome
+pkill -f xdg-desktop-portal-wlr
 pkill -f "^/usr/libexec/xdg-desktop-portal$"
+logger "xdg-portal-hyprland: stopped old portals"
+sleep 1
+/usr/libexec/xdg-desktop-portal-gtk &
+logger "xdg-portal-hyprland: started xdg-desktop-portal-gtk"
+sleep 1
 /usr/libexec/xdg-desktop-portal-hyprland &
+logger "xdg-portal-hyprland: started xdg-desktop-portal-hyprland"
 sleep 2
 /usr/libexec/xdg-desktop-portal &
+logger "xdg-portal-hyprland: started xdg-desktop-portal"
