@@ -1,0 +1,183 @@
+#!/usr/bin/env python3
+"""Ghostty colours from your wallpaper.
+
+Reads the wallpaper the island is showing (~/.config/island/settings.json;
+for a video it uses a still frame) and writes a Ghostty theme to
+~/.config/ghostty/themes/wallpaper. Ghostty's config uses `theme = wallpaper`.
+
+  ghostty-wallpaper-theme            once
+  ghostty-wallpaper-theme --watch    again whenever the wallpaper changes
+  ghostty-wallpaper-theme <image>    from any picture
+
+New Ghostty windows get the colours right away; in an open one press
+Ctrl+Shift+, to reload. Needs Pillow (dev-python/pillow) and, for video
+wallpapers, ffmpegthumbnailer.
+"""
+import colorsys
+import json
+import math
+import os
+import shutil
+import subprocess
+import sys
+import time
+
+HOME = os.path.expanduser("~")
+SETTINGS = os.path.join(HOME, ".config/island/settings.json")
+THUMBS = os.path.join(HOME, ".cache/island/thumbs")
+OUT = os.path.join(os.environ.get("XDG_CONFIG_HOME", os.path.join(HOME, ".config")), "ghostty/themes/wallpaper")
+
+# ANSI slot -> hue it should sit near (red, green, yellow, blue, magenta, cyan)
+SLOTS = [("red", 0.0), ("green", 0.33), ("yellow", 0.14), ("blue", 0.6), ("magenta", 0.85), ("cyan", 0.5)]
+
+
+def wallpaper():
+    """(path, kind) of the island's desktop wallpaper, first display."""
+    try:
+        with open(SETTINGS) as f:
+            desk = json.load(f).get("desktop") or {}
+    except (OSError, ValueError):
+        return None
+    e = desk.get("*") or next((v for v in desk.values() if isinstance(v, dict)), None)
+    if not e or not e.get("path"):
+        return None
+    return os.path.expanduser(e["path"]), e.get("kind", "photo")
+
+
+def still(path, kind):
+    """An image file to read colours from."""
+    if kind != "video":
+        return path
+    frame = os.path.join(THUMBS, os.path.basename(path) + ".jpg")
+    if not os.path.isfile(frame) and shutil.which("ffmpegthumbnailer"):
+        os.makedirs(THUMBS, exist_ok=True)
+        subprocess.run(["ffmpegthumbnailer", "-i", path, "-o", frame, "-s", "480", "-q", "6"],
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    return frame if os.path.isfile(frame) else ""
+
+
+def palette(image):
+    """The wallpaper's main colours as (h, l, s, weight), most common first."""
+    from PIL import Image
+    img = Image.open(image).convert("RGB")
+    img.thumbnail((200, 200))
+    q = img.quantize(colors=16, method=Image.Quantize.MEDIANCUT)
+    pal = q.getpalette()
+    out = []
+    for count, idx in sorted(q.getcolors(), reverse=True):
+        r, g, b = (c / 255 for c in pal[idx * 3: idx * 3 + 3])
+        h, l, s = colorsys.rgb_to_hls(r, g, b)
+        out.append((h, l, s, count))
+    return out
+
+
+def hexc(h, l, s):
+    r, g, b = colorsys.hls_to_rgb(h % 1.0, max(0, min(1, l)), max(0, min(1, s)))
+    return "#%02x%02x%02x" % (round(r * 255), round(g * 255), round(b * 255))
+
+
+def hue_gap(a, b):
+    d = abs(a - b) % 1.0
+    return min(d, 1 - d)
+
+
+def theme(cols):
+    # the wallpaper's overall tint: the hue covering the most area (gradients
+    # split into many similar colours, so group them by hue first)
+    bins = [0.0] * 12
+    for h, l, sat, n in cols:
+        if sat > 0.12 and 0.08 < l < 0.92:
+            bins[int(h * 12) % 12] += n * sat
+    # neighbouring hues count too, so a wide sky beats one flat patch
+    score = [bins[i - 1] * 0.5 + bins[i] + bins[(i + 1) % 12] * 0.5 for i in range(12)]
+    if max(score) > 0:
+        top = score.index(max(score))
+        near = {(top - 1) % 12, top, (top + 1) % 12}
+        group = [c for c in cols if int(c[0] * 12) % 12 in near and c[2] > 0.12]
+        w = sum(c[3] for c in group)
+        x = sum(math.cos(c[0] * 2 * math.pi) * c[3] for c in group)
+        y = sum(math.sin(c[0] * 2 * math.pi) * c[3] for c in group)
+        bh = (math.atan2(y, x) / (2 * math.pi)) % 1.0
+        bs = min(sum(c[2] * c[3] for c in group) / w, 0.35)
+    else:
+        bh, bs = cols[0][0], 0.0
+    vivid = [c for c in cols if c[2] > 0.2 and 0.15 < c[1] < 0.85] or cols
+
+    lines = {
+        "background": hexc(bh, 0.08, bs * 0.6),
+        "foreground": hexc(bh, 0.88, 0.25),
+        "cursor-color": hexc(bh, 0.80, 0.55),
+        "selection-background": hexc(bh, 0.28, bs),
+        "selection-foreground": hexc(bh, 0.92, 0.2),
+    }
+    pal = [None] * 16
+    pal[0] = hexc(bh, 0.16, bs * 0.6)       # black
+    pal[8] = hexc(bh, 0.38, bs * 0.5)       # bright black (comments, hints)
+    pal[7] = hexc(bh, 0.80, 0.15)           # white
+    pal[15] = hexc(bh, 0.94, 0.12)          # bright white
+    for i, (_, target) in enumerate(SLOTS):
+        # use the wallpaper's own colour if one is close to this hue, else the standard hue
+        near = min(vivid, key=lambda c: hue_gap(c[0], target))
+        h = near[0] if hue_gap(near[0], target) < 0.08 else target
+        s = max(0.45, min(near[2], 0.75)) if hue_gap(near[0], target) < 0.08 else 0.55
+        slot = [1, 2, 3, 4, 5, 6][i]
+        pal[slot] = hexc(h, 0.66, s)            # normal: readable on the dark background
+        pal[slot + 8] = hexc(h, 0.76, s * 0.9)  # bright: a little lighter
+    return lines, pal
+
+
+def write(image):
+    lines, pal = theme(palette(image))
+    os.makedirs(os.path.dirname(OUT), exist_ok=True)
+    text = "# Generated by ghostty-wallpaper-theme from %s\n" % os.path.basename(image)
+    text += "".join("palette = %d=%s\n" % (i, c) for i, c in enumerate(pal))
+    text += "".join("%s = %s\n" % kv for kv in lines.items())
+    tmp = OUT + ".part"
+    with open(tmp, "w") as f:
+        f.write(text)
+    os.replace(tmp, OUT)
+    return lines["background"]
+
+
+def once(quiet=False):
+    wp = wallpaper()
+    if not wp:
+        if not quiet:
+            print("No wallpaper set in the island yet.", file=sys.stderr)
+        return
+    image = still(*wp)
+    if not image:
+        print("Couldn't get a frame from %s (install ffmpegthumbnailer)." % wp[0], file=sys.stderr)
+        return
+    bg = write(image)
+    if not quiet:
+        print("Ghostty theme updated from %s (background %s)." % (os.path.basename(wp[0]), bg))
+
+
+def main():
+    try:
+        import PIL  # noqa: F401
+    except ImportError:
+        sys.exit("Needs Pillow: doas emerge --ask dev-python/pillow")
+    args = sys.argv[1:]
+    if args and not args[0].startswith("-"):
+        print("Ghostty theme updated (background %s)." % write(args[0]))
+        return
+    if "--watch" in args:
+        last = None
+        while True:
+            try:
+                wp = wallpaper()
+                now = (os.path.getmtime(SETTINGS), wp)
+            except OSError:
+                now = None
+            if now != last:
+                if now is not None and (last is None or now[1] != last[1]):
+                    once(quiet=last is not None)
+                last = now
+            time.sleep(10)
+    once()
+
+
+if __name__ == "__main__":
+    main()
