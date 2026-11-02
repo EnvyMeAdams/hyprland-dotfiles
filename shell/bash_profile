@@ -1,0 +1,12 @@
+# /etc/skel/.bash_profile
+# This file is sourced by bash for login shells.  The following line
+# runs your .bashrc and is recommended by the bash info pages.
+if [[ -f ~/.bashrc ]] ; then
+        . ~/.bashrc
+fi
+
+# Start Hyprland on tty1 only; other ttys stay plain text logins.
+# (The greetd login screen starts it on its own VT.)
+if [ -z "$WAYLAND_DISPLAY" ] && [ "$(tty)" = /dev/tty1 ]; then
+    exec dbus-run-session start-hyprland
+fi

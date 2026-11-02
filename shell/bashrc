@@ -1,0 +1,40 @@
+# /etc/skel/.bashrc
+#
+# This file is sourced by all *interactive* bash shells on startup,
+# including some apparently interactive shells such as scp and rcp
+# that can't tolerate any output.  So make sure this doesn't display
+# anything or bad things will happen !
+
+
+# Test for an interactive shell.  There is no need to set anything
+# past this point for scp and rcp, and it's important to refrain from
+# outputting anything in those cases.
+if [[ $- != *i* ]] ; then
+        # Shell is non-interactive.  Be done now!
+        return
+fi
+
+
+# Put your fun stuff here.
+
+# fastfetch with a random logo and colours that follow the wallpaper
+#   logos:  ~/.config/fastfetch/logos/ (not in the repo, add your own)
+#   colours: ~/.config/fastfetch/wallpaper-colors (written by scripts/wallpaper-colors)
+fastfetch() {
+    local pic FF_KEYS="" FF_TITLE=""
+    [ -f ~/.config/fastfetch/wallpaper-colors ] && . ~/.config/fastfetch/wallpaper-colors
+    local colors=()
+    [ -n "$FF_KEYS" ] && colors+=(--color-keys "$FF_KEYS")
+    [ -n "$FF_TITLE" ] && colors+=(--color-title "$FF_TITLE")
+    pic=$(find ~/.config/fastfetch/logos -maxdepth 1 -type f \
+        \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.webp' -o -iname '*.gif' \) 2>/dev/null | shuf -n 1)
+    if [ -n "$pic" ]; then
+        command fastfetch "${colors[@]}" --logo-type kitty --logo "$pic" "$@"
+    else
+        command fastfetch "${colors[@]}" "$@"
+    fi
+}
+
+fastfetch
+
+export PATH="$HOME/.local/bin:$PATH"
