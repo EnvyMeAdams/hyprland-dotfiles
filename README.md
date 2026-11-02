@@ -5,6 +5,7 @@ Quickshell dynamic island from
 [quickshell-dotfiles](https://github.com/EnvyMeAdams/quickshell-dotfiles).
 
 ```
+install.sh                sets everything up (see Install)
 hyprland.lua              entry point, loads config/ in order
 config/                   one file per topic (monitors, keybinds, autostart…)
 xdg-portal-hyprland       starts the desktop portals without systemd
@@ -20,15 +21,23 @@ ghostty/config            Ghostty settings (kept as an alternative)
 ## Install
 
 ```sh
-git clone https://github.com/EnvyMeAdams/hyprland-dotfiles ~/.config/hypr
-mkdir -p ~/.config/kitty ~/.config/fastfetch/logos
-ln -sf ~/.config/hypr/kitty/kitty.conf         ~/.config/kitty/kitty.conf
-ln -sf ~/.config/hypr/fastfetch/config.jsonc   ~/.config/fastfetch/config.jsonc
-ln -sf ~/.config/hypr/shell/bashrc             ~/.bashrc
-ln -sf ~/.config/hypr/shell/bash_profile       ~/.bash_profile
+curl -fsSL https://raw.githubusercontent.com/EnvyMeAdams/hyprland-dotfiles/main/install.sh | sh
 ```
 
-Put your own pictures in `~/.config/fastfetch/logos/`; they aren't in the repo.
+or, from a clone, `~/.config/hypr/install.sh`. It:
+
+- clones this repo to `~/.config/hypr` (or updates it)
+- links kitty, Ghostty, fastfetch, `~/.bashrc` and `~/.bash_profile` into it,
+  moving anything it replaces to `<name>.old`
+- sets superfile to the wallpaper theme with a see-through background
+- clones and installs the Quickshell island
+  ([quickshell-dotfiles](https://github.com/EnvyMeAdams/quickshell-dotfiles));
+  skip with `--no-island`
+- builds the wallpaper colours once
+- lists any programs that aren't installed, with the emerge command
+
+It installs no packages and is safe to run again. Put your own pictures in
+`~/.config/fastfetch/logos/`; they aren't in the repo.
 
 `config/monitors.lua` is this machine's layout; Quickshell's Display settings
 rewrite it, so adjust it on a new machine.
