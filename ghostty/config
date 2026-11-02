@@ -1,7 +1,7 @@
 # Ghostty. Linked to ~/.config/ghostty/config (see README).
 # Reload in an open window: Ctrl+Shift+,
 
-# Colours follow the wallpaper: scripts/ghostty-wallpaper-theme writes
+# Colours follow the wallpaper: scripts/wallpaper-colors writes
 # ~/.config/ghostty/themes/wallpaper and updates it when the wallpaper changes.
 theme = wallpaper
 
