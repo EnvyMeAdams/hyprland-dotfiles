@@ -110,24 +110,26 @@ def theme(cols):
 
     lines = {
         "background": hexc(bh, 0.08, bs * 0.6),
-        "foreground": hexc(bh, 0.88, 0.25),
-        "cursor-color": hexc(bh, 0.80, 0.55),
-        "selection-background": hexc(bh, 0.28, bs),
-        "selection-foreground": hexc(bh, 0.92, 0.2),
+        # text: a soft pastel of the wallpaper's main colour
+        "foreground": hexc(bh, 0.84, 0.60),
+        "cursor-color": hexc(bh, 0.78, 0.70),
+        "selection-background": hexc(bh, 0.30, max(bs, 0.30)),
+        "selection-foreground": hexc(bh, 0.92, 0.45),
     }
     pal = [None] * 16
     pal[0] = hexc(bh, 0.16, bs * 0.6)       # black
-    pal[8] = hexc(bh, 0.38, bs * 0.5)       # bright black (comments, hints)
-    pal[7] = hexc(bh, 0.80, 0.15)           # white
-    pal[15] = hexc(bh, 0.94, 0.12)          # bright white
+    pal[8] = hexc(bh, 0.50, max(bs, 0.25))  # bright black (comments, hints)
+    pal[7] = hexc(bh, 0.86, 0.35)           # white: pastel-tinted
+    pal[15] = hexc(bh, 0.93, 0.40)          # bright white
     for i, (_, target) in enumerate(SLOTS):
         # use the wallpaper's own colour if one is close to this hue, else the standard hue
         near = min(vivid, key=lambda c: hue_gap(c[0], target))
         h = near[0] if hue_gap(near[0], target) < 0.08 else target
-        s = max(0.45, min(near[2], 0.75)) if hue_gap(near[0], target) < 0.08 else 0.55
+        s = max(0.55, min(near[2], 0.80)) if hue_gap(near[0], target) < 0.08 else 0.65
         slot = [1, 2, 3, 4, 5, 6][i]
-        pal[slot] = hexc(h, 0.66, s)            # normal: readable on the dark background
-        pal[slot + 8] = hexc(h, 0.76, s * 0.9)  # bright: a little lighter
+        # pastel: light and soft, still distinct from each other
+        pal[slot] = hexc(h, 0.76, s)             # normal
+        pal[slot + 8] = hexc(h, 0.80, min(1, s * 1.1))  # bright: a little lighter, still colourful
     return lines, pal
 
 
