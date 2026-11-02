@@ -37,5 +37,7 @@ match, and writes it whenever the wallpaper changes:
   `spf` opens. In `~/.config/superfile/config.toml` set `theme = "wallpaper"`
   and `transparent_background = true`.
 - Ghostty: `~/.config/ghostty/themes/wallpaper`, if you use it instead.
+- fastfetch: `~/.config/fastfetch/wallpaper-colors` (`FF_KEYS`, `FF_TITLE`), passed
+  as `--color-keys` / `--color-title` by a `fastfetch` function in `~/.bashrc`.
 
 Needs `dev-python/pillow`, and `ffmpegthumbnailer` for video wallpapers.
