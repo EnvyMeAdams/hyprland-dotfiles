@@ -1,6 +1,8 @@
 hl.on("hyprland.start", function()
     hl.exec_cmd("mkdir -p ~/Pictures/Screenshots ~/Videos/Recordings")
     hl.exec_cmd("dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP")
+    -- join the keyring that login (PAM) already unlocked to this session's D-Bus
+    hl.exec_cmd("gnome-keyring-daemon --start --components=secrets")
     hl.exec_cmd("gentoo-pipewire-launcher")
     hl.exec_cmd("~/.config/hypr/xdg-portal-hyprland")
     hl.exec_cmd("/usr/libexec/hyprpolkitagent")
