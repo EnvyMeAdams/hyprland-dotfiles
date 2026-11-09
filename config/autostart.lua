@@ -6,7 +6,9 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("quickshell")
     hl.exec_cmd("signal-desktop")
     hl.exec_cmd("kdeconnect-indicator")
-    hl.exec_cmd("syncthing --no-browser")
+    -- OpenCloud sync client (AppImage via Gear Lever). Waits a few seconds so the
+    -- tray is ready, clears a lock left by a crashed copy, skips if not installed.
+    hl.exec_cmd([[sh -c 'app="$HOME/AppImages/opencloud_desktop_desktop_sync_client.appimage"; [ -x "$app" ] || exit 0; sleep 5; pgrep -f "mount_opencl" >/dev/null || rm -f "$XDG_RUNTIME_DIR"/kdsingleapp-*-opencloud*; exec "$app"']])
     hl.exec_cmd("island-greeter-sync --watch")
     hl.exec_cmd("~/.config/hypr/scripts/wallpaper-colors --watch")
 end)
