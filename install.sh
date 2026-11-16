@@ -62,19 +62,26 @@ say "Linking config files"
 link kitty/kitty.conf       "$CONF/kitty/kitty.conf"
 link ghostty/config         "$CONF/ghostty/config"
 link fastfetch/config.jsonc "$CONF/fastfetch/config.jsonc"
-link superfile/hotkeys.toml "$CONF/superfile/hotkeys.toml"
 link shell/bashrc           "$HOME/.bashrc"
 link shell/bash_profile     "$HOME/.bash_profile"
 mkdir -p "$CONF/fastfetch/logos"
 chmod +x "$HYPR/xdg-portal-hyprland" "$HYPR/scripts/"* 2>/dev/null || true
 
-# ── 3. superfile: wallpaper theme + see-through background ──
-spf="$CONF/superfile/config.toml"
-if [ -f "$spf" ]; then
-	sed -i 's/^theme = .*/theme = "wallpaper"/; s/^transparent_background = .*/transparent_background = true/' "$spf"
-	note "superfile set to the wallpaper theme"
-elif command -v spf >/dev/null; then
-	note "Open spf once (it makes its config), then run this again to theme it"
+# ── 3. Thunar: liquid glass (gtk/thunar-glass.css, Thunar only) ──
+# mango-dotfiles installs the same file; whichever got there first is kept
+gtkdir="$CONF/gtk-3.0"
+mkdir -p "$gtkdir"
+if [ ! -e "$gtkdir/thunar-glass.css" ]; then
+	ln -s "$HYPR/gtk/thunar-glass.css" "$gtkdir/thunar-glass.css"
+	note "link .config/gtk-3.0/thunar-glass.css"
+fi
+if ! grep -qs 'thunar-glass.css' "$gtkdir/gtk.css"; then
+	{ printf '@import url("thunar-glass.css");\n'; cat "$gtkdir/gtk.css" 2>/dev/null || true; } > "$gtkdir/gtk.css.new"
+	mv "$gtkdir/gtk.css.new" "$gtkdir/gtk.css"
+	note "Thunar glass theme added to .config/gtk-3.0/gtk.css"
+fi
+if command -v xdg-mime >/dev/null && command -v thunar >/dev/null; then
+	xdg-mime default thunar.desktop inode/directory && note "Thunar is the default for folders"
 fi
 
 # ── 4. the Quickshell island ──
@@ -104,7 +111,7 @@ need() {   # need <command> <package>
 need Hyprland gui-wm/hyprland
 need quickshell gui-apps/quickshell
 need kitty x11-terms/kitty
-need spf app-misc/superfile
+need thunar xfce-base/thunar
 need fastfetch app-misc/fastfetch
 need firefox www-client/firefox
 need wpctl media-video/wireplumber
@@ -120,7 +127,7 @@ python3 -c "import PIL" 2>/dev/null || missing="$missing dev-python/pillow"
 if [ -n "$missing" ]; then
 	note "Not installed:$missing"
 	note "Install with: doas emerge --ask$missing"
-	note "(superfile needs the guru repo and ~amd64; fastfetch image logos need USE=imagemagick)"
+	note "(fastfetch image logos need USE=imagemagick)"
 else
 	note "Everything's installed"
 fi

@@ -29,7 +29,8 @@ or, from a clone, `~/.config/hypr/install.sh`. It:
 - clones this repo to `~/.config/hypr` (or updates it)
 - links kitty, Ghostty, fastfetch, `~/.bashrc` and `~/.bash_profile` into it,
   moving anything it replaces to `<name>.old`
-- sets superfile to the wallpaper theme with a see-through background
+- adds the liquid glass Thunar theme (`gtk/thunar-glass.css`, Thunar only) and
+  makes Thunar the default for folders (SUPER+E opens it)
 - clones and installs the Quickshell island
   ([quickshell-dotfiles](https://github.com/EnvyMeAdams/quickshell-dotfiles));
   skip with `--no-island`
@@ -50,9 +51,6 @@ match, and writes it whenever the wallpaper changes:
 
 - kitty: `~/.config/kitty/themes/wallpaper.conf`. Open windows are recoloured
   right away (the script sends kitty SIGUSR1).
-- superfile: `~/.config/superfile/theme/wallpaper.toml`. Used the next time
-  `spf` opens. In `~/.config/superfile/config.toml` set `theme = "wallpaper"`
-  and `transparent_background = true`.
 - Ghostty: `~/.config/ghostty/themes/wallpaper`, if you use it instead.
 - fastfetch: `~/.config/fastfetch/wallpaper-colors` (`FF_KEYS`, `FF_TITLE`), passed
   as `--color-keys` / `--color-title` by a `fastfetch` function in `~/.bashrc`.

@@ -1,0 +1,177 @@
+/* thunar-glass.css — liquid-glass look for Thunar only.
+ * install.sh links this to ~/.config/gtk-3.0/ and adds this line to the top of
+ * ~/.config/gtk-3.0/gtk.css:
+ *     @import url("thunar-glass.css");
+ * Every rule is scoped to .thunar, so other GTK3 apps are left alone.
+ * The blur comes from the compositor (Hyprland: decoration.blur, mango: blur=1); this file makes the window
+ * see-through so there is something to blur.
+ */
+
+@define-color glass_tint   rgba(22, 24, 30, 0.42);
+@define-color glass_panel  rgba(255, 255, 255, 0.06);
+@define-color glass_hover  rgba(255, 255, 255, 0.10);
+@define-color glass_select rgba(255, 255, 255, 0.18);
+@define-color glass_edge   rgba(255, 255, 255, 0.16);
+@define-color glass_text   rgba(255, 255, 255, 0.92);
+@define-color glass_sub    rgba(255, 255, 255, 0.55);
+
+/* the window: one tinted sheet with a soft light edge */
+window.thunar,
+window.thunar.background {
+    background-color: @glass_tint;
+    color: @glass_text;
+    border-radius: 16px;
+    box-shadow: inset 0 1px 0 @glass_edge;
+}
+
+/* everything inside lets the window's glass show through */
+.thunar box,
+.thunar paned,
+.thunar viewport,
+.thunar scrolledwindow,
+.thunar treeview,
+.thunar treeview.view,
+.thunar iconview,
+.thunar .view,
+.thunar notebook,
+.thunar notebook > stack,
+.thunar statusbar,
+.thunar menubar {
+    background-color: transparent;
+    background-image: none;
+    color: @glass_text;
+    border: none;
+    box-shadow: none;
+}
+
+.thunar paned > separator {
+    background: transparent;
+    min-width: 1px;
+    background-image: linear-gradient(@glass_edge, @glass_edge);
+    background-size: 1px 70%;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+/* sidebar: a slightly lighter panel */
+.thunar .sidebar,
+.thunar .shortcuts-pane,
+.thunar .tree-pane {
+    background-color: @glass_panel;
+    border-radius: 12px;
+    margin: 6px 0 6px 6px;
+}
+.thunar .sidebar treeview.view { padding: 3px 0; }
+
+/* toolbar + location bar */
+.thunar toolbar,
+.thunar .location-toolbar,
+.thunar headerbar {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 6px 8px;
+}
+.thunar toolbar button,
+.thunar .path-bar button {
+    background: transparent;
+    border: none;
+    border-radius: 999px;
+    box-shadow: none;
+    color: @glass_text;
+    padding: 4px 10px;
+    min-height: 26px;
+}
+.thunar toolbar button:hover,
+.thunar .path-bar button:hover { background-color: @glass_hover; }
+.thunar toolbar button:checked,
+.thunar .path-bar button:checked {
+    background-color: @glass_select;
+    box-shadow: inset 0 1px 0 @glass_edge;
+}
+
+.thunar entry {
+    background-color: @glass_panel;
+    color: @glass_text;
+    border: 1px solid @glass_edge;
+    border-radius: 999px;
+    box-shadow: none;
+    padding: 4px 12px;
+    min-height: 26px;
+}
+.thunar entry:focus { border-color: rgba(255, 255, 255, 0.35); }
+
+/* files: rounded, frosted selection */
+.thunar .view:hover,
+.thunar iconview:hover { background-color: transparent; }
+.thunar .view:selected,
+.thunar iconview:selected,
+.thunar treeview.view:selected,
+.thunar .view:selected:focus,
+.thunar treeview.view:selected:focus {
+    background-color: @glass_select;
+    color: #ffffff;
+    border-radius: 10px;
+}
+.thunar .view:drop(active) { box-shadow: inset 0 0 0 2px @glass_edge; }
+
+.thunar treeview.view header button {
+    background: transparent;
+    border: none;
+    color: @glass_sub;
+    box-shadow: none;
+}
+
+/* tabs */
+.thunar notebook > header {
+    background: transparent;
+    border: none;
+    padding: 2px 8px;
+}
+.thunar notebook > header tab {
+    border-radius: 999px;
+    padding: 2px 12px;
+    color: @glass_sub;
+    border: none;
+    box-shadow: none;
+}
+.thunar notebook > header tab:checked {
+    background-color: @glass_select;
+    color: @glass_text;
+}
+
+/* status bar */
+.thunar statusbar { color: @glass_sub; padding: 2px 12px; }
+
+/* scrollbars: thin pills */
+.thunar scrollbar { background: transparent; border: none; }
+.thunar scrollbar slider {
+    background-color: rgba(255, 255, 255, 0.25);
+    border-radius: 999px;
+    min-width: 5px;
+    min-height: 5px;
+    border: none;
+}
+.thunar scrollbar slider:hover { background-color: rgba(255, 255, 255, 0.40); }
+
+/* rubber-band selection */
+.thunar .view.rubberband,
+.thunar rubberband {
+    background-color: rgba(255, 255, 255, 0.10);
+    border: 1px solid @glass_edge;
+    border-radius: 6px;
+}
+
+/* menus/popovers inside the Thunar window (right-click menus are their own
+   windows in GTK3, so they follow your normal GTK theme instead) */
+.thunar menu,
+.thunar .context-menu,
+.thunar popover {
+    background-color: rgba(22, 24, 30, 0.72);
+    color: @glass_text;
+    border: 1px solid @glass_edge;
+    border-radius: 12px;
+    padding: 4px;
+}
+.thunar menu menuitem { border-radius: 8px; padding: 5px 10px; }
+.thunar menu menuitem:hover { background-color: @glass_select; }
